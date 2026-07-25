@@ -14,22 +14,7 @@ rule-based assistant.
 - **Frontend**: Plain HTML / CSS / JavaScript (fetch-based, consumes the REST API)
 - **Testing**: pytest
 
-## Project Structure
-app/
-  services/              # service layer (search, donor management, ML, assistant)
-  routes/              # Flask API blueprints (api.py)
-  db/                  # database setup (database.py, models.py)
-  ml/                  # ML pipeline (train.py, predict.py, models/*.pkl)
-  utils/               # logging, helpers
-  schemas/             # Pydantic schemas (optional, used via JSON)
-  __init__.py          # app factory
-
-static/              # CSS, JavaScript
-templates/           # HTML templates
-data/                # donor_history.csv (source)
-ml_history.json      # training metadata (per training run)
-requirements.txt
-
+## Implementation Steps
 
 # 1. Activate venv
 venv\Scripts\Activate.ps1
