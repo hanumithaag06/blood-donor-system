@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Donor Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="brand">🩸 Blood Donor Registry</span>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/">Search</a>
+            <a href="/register">Register</a>
+            <a href="/assistant">Assistant</a>
+        </div>
+    </nav>
+    <main class="container">
+        <h1 id="donor-name">Donor Details</h1>
+        <div id="donor-profile" class="profile-card"></div>
+
+        <h2>Eligibility Breakdown</h2>
+        <div id="eligibility-card" class="profile-card"></div>
+
+        <h2>Manual Verification</h2>
+        <div id="manual-verification" class="profile-card"></div>
+
+        <h2>Response Prediction</h2>
+        <button id="predict-btn">Predict Response</button>
+        <div id="prediction-card" class="profile-card"></div>
+
+        <p><a id="history-link" href="#">View full donation history →</a></p>
+    </main>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        const DONOR_ID = {{ request.path.split('/')[-1] }};
+        document.addEventListener("DOMContentLoaded", () => initDonorDetailsPage(DONOR_ID));
+    </script>
+</body>
+</html>

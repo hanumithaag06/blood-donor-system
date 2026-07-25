@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register Donor — Blood Donor Registry</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="brand">🩸 Blood Donor Registry</span>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/">Search</a>
+            <a href="/register">Register</a>
+            <a href="/assistant">Assistant</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Register a New Donor</h1>
+        <form id="donor-form" class="stacked-form">
+            <label>Full Name
+                <input type="text" id="full_name" required>
+            </label>
+            <label>Date of Birth
+                <input type="date" id="date_of_birth" required onchange="updateAgeDisplay()">
+            </label>
+            <label>Age (calculated)
+                <input type="text" id="age_display" readonly>
+            </label>
+            <label>Gender
+                <select id="gender">
+                    <option value="">Prefer not to say</option>
+                    <option>Male</option>
+                    <option>Female</option>
+                    <option>Other</option>
+                </select>
+            </label>
+            <label>Blood Group
+                <select id="blood_group" required>
+                    <option value="">Select</option>
+                    <option>A+</option><option>A-</option>
+                    <option>B+</option><option>B-</option>
+                    <option>AB+</option><option>AB-</option>
+                    <option>O+</option><option>O-</option>
+                </select>
+            </label>
+            <label>Phone
+                <input type="text" id="phone" required>
+            </label>
+            <label>Area
+                <input type="text" id="area" required>
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="is_available" checked> Currently available
+            </label>
+            <label>Last Donation Date (optional)
+                <input type="date" id="last_donation_date">
+            </label>
+            <div id="form-errors" class="error-text"></div>
+            <button type="submit">Register Donor</button>
+        </form>
+        <div id="donor-status" class="status-text"></div>
+
+        <hr>
+
+        <h2>Log a Donation</h2>
+        <form id="donation-form" class="stacked-form">
+            <label>Donor ID
+                <input type="number" id="donor_id" required>
+            </label>
+            <label>Donation Date
+                <input type="date" id="donation_date" required>
+            </label>
+            <label>Volume (ml, optional)
+                <input type="number" id="volume_ml">
+            </label>
+            <button type="submit">Log Donation</button>
+        </form>
+        <div id="donation-status" class="status-text"></div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", initRegisterPage);
+    </script>
+</body>
+</html>

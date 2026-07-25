@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard — Blood Donor Registry</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <span class="brand">🩸 Blood Donor Registry</span>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/">Search</a>
+            <a href="/register">Register</a>
+            <a href="/assistant">Assistant</a>
+        </div>
+    </nav>
+    <main class="container">
+        <h1>Dashboard</h1>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card"><span class="stat-value" id="total_donors">–</span><span class="stat-label">Total Donors</span></div>
+            <div class="stat-card"><span class="stat-value" id="eligible_today">–</span><span class="stat-label">Eligible Today</span></div>
+            <div class="stat-card"><span class="stat-value" id="available_donors">–</span><span class="stat-label">Available Donors</span></div>
+            <div class="stat-card"><span class="stat-value" id="rare_blood_donors">–</span><span class="stat-label">Rare Blood Donors</span></div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart-card">
+                <h3>Donors by Area (Heatmap)</h3>
+                <div id="area-heatmap"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Blood Group Distribution</h3>
+                <canvas id="bloodGroupChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Eligible vs Not Eligible</h3>
+                <canvas id="eligibilityChart"></canvas>
+            </div>
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>document.addEventListener("DOMContentLoaded", initDashboardPage);</script>
+</body>
+</html>

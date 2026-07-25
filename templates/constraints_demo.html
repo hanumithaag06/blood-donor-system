@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Constraint Demo</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="brand">🩸 Blood Donor Registry</span>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/">Search</a>
+            <a href="/register">Register</a>
+            <a href="/assistant">Assistant</a>
+            <a href="/constraints-demo">Constraints Demo</a>
+        </div>
+    </nav>
+    <main class="container">
+        <h1>Database Constraint Demonstration</h1>
+        <p class="hint">Each button intentionally sends invalid data to the real API and shows the actual error returned.</p>
+
+        <div class="demo-row">
+            <button onclick="demoDuplicatePhone()">Duplicate Phone</button>
+            <button onclick="demoFutureDate()">Future Donation Date</button>
+            <button onclick="demoInvalidAge()">Invalid Age (under 18)</button>
+            <button onclick="demoForeignKey()">Foreign Key Violation</button>
+        </div>
+
+        <pre id="demo-output" class="demo-output">Results will appear here.</pre>
+    </main>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

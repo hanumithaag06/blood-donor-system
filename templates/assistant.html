@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assistant — Blood Donor Registry</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="brand">🩸 Blood Donor Registry</span>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/">Search</a>
+            <a href="/register">Register</a>
+            <a href="/assistant">Assistant</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Ask the Assistant</h1>
+        <p class="hint">
+            Try: "Show eligible O+ donors", "List donors in Tambaram",
+            "How many A- donors exist?", "Show donors available today"
+        </p>
+
+        <div id="chat-window" class="chat-window"></div>
+
+        <form id="assistant-form" class="chat-input-form">
+            <input type="text" id="assistant-query" placeholder="Type your question..." required>
+            <button type="submit">Ask</button>
+        </form>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", initAssistantPage);
+    </script>
+</body>
+</html>
