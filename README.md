@@ -22,14 +22,11 @@ venv\Scripts\Activate.ps1
 # 2. Install/confirm dependencies
 pip install -r requirements.txt
 
-# 3. Delete old dev DB (schema changed — gender field, etc.)
-Remove-Item blood_donor.db -ErrorAction SilentlyContinue
-
-# 4. Train the ML model
+# 3. Train the ML model
 python -m app.ml.train
 
-# 5. Seed realistic demo data
+# 4. Seed realistic demo data
 python -m app.seed
 
-# 6. Run the app
+# 5. Run the app
 python main.py
