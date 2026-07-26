@@ -77,63 +77,9 @@ The payoff: eligibility logic, search ranking, and the donation-completion workf
 | ORM | SQLAlchemy | Decouples business logic from raw SQL |
 | Validation | Pydantic | Enforces request/response shape at the API boundary |
 | ML | scikit-learn (`RandomForestClassifier`) | Right-sized for a small tabular classification problem |
-| Assistant | Rule-based intent matching | The question set is small and enumerable — no NLP dependency justified |
+| Assistant | Rule-based intent matching | The question set is small and enumerable |
 | Frontend | HTML / CSS / JS, Chart.js | No build step; fetch-based, talks straight to the REST API |
 | Testing | pytest | Unit + integration across every layer |
-
----
-
-## 📁 Project Structure
-
-```
-blood-donor-system/
-├── app/
-│   ├── __init__.py           # Flask app factory + frontend view routes
-│   ├── settings.py           # .env config, business constants, area list
-│   ├── db.py                 # Engine/session lifecycle, FK enforcement
-│   ├── seed.py                # CSV-driven seeding (data/donor_history.csv)
-│   ├── models.py              # Donor + Donation ORM models
-│   ├── repository.py          # DonorRepository + DonationRepository
-│   ├── schemas.py             # Pydantic request/response schemas
-│   ├── routes.py              # REST API endpoints
-│   ├── assistant.py           # Intent-matching assistant pipeline
-│   ├── utils.py               # Logging, custom exceptions, normalization
-│   ├── services/
-│   │   ├── donor_service.py         # CRUD, donation-completion workflow
-│   │   ├── eligibility_service.py   # Pure business-rule engine
-│   │   ├── search_service.py        # Filtering + ranking
-│   │   └── prediction_service.py    # Bridges ML model to the app
-│   └── ml/
-│       ├── train.py           # Offline training pipeline
-│       ├── model.py           # Inference-only wrapper
-│       └── artifacts/         # Saved .pkl model (generated, gitignored)
-├── templates/                 # index, register, dashboard, donor_details,
-│                               # donation_history, assistant, constraints_demo
-├── static/
-│   ├── css/style.css
-│   └── js/script.js
-├── data/
-│   └── donor_history.csv      # Source of truth for seed data
-├── sql/
-│   └── schema.sql             # Reference SQL matching models.py
-├── docs/
-│   ├── er_diagram.png
-│   └── architecture.png
-├── scripts/
-│   └── verify_task5.py        # End-to-end verification script
-├── tests/
-│   ├── conftest.py
-│   ├── test_api_routes.py
-│   ├── test_assistant.py
-│   ├── test_database_constraints.py
-│   ├── test_ml_pipeline.py
-│   └── test_search_service.py
-├── main.py
-├── pytest.ini
-├── requirements.txt
-├── .env.example
-└── README.md
-```
 
 ---
 
@@ -334,9 +280,6 @@ Rule-based and intent-aware, not a chatbot pretending otherwise. It normalizes i
 | *"Eligible donors"* | Eligibility filter |
 | *"Show donor details of Arun Kumar"* | Full donor profile |
 | *"How many A- donors exist?"* | Count query, with donor cards attached |
-| *anything else* | A clear, honest: `"I don't know how to answer that."` |
-
-No guessing, no hallucinated intent — if it doesn't recognize the question, it says so.
 
 ---
 
