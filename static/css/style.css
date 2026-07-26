@@ -148,3 +148,71 @@ button:hover { background: #8f1515; }
     border-radius: 4px; font-size: 0.9rem;
 }
 .heatmap-count { font-weight: 700; }
+
+/* ---------- Mode tabs ---------- */
+.mode-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+.tab-btn {
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.tab-btn.active {
+    background: #b71c1c;
+    color: white;
+    border-color: #b71c1c;
+}
+/* Explicitly no :hover rule controls visibility of anything — hover only
+   gives a subtle affordance on the button itself, never reveals content. */
+.tab-btn:hover:not(.active) {
+    border-color: #b71c1c;
+}
+
+/* ---------- Mode sections ---------- */
+.mode-section {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.mode-section.active {
+    display: block;
+    opacity: 1;
+}
+
+/* ---------- Update panel (inside Mode 2) ---------- */
+.update-panel-hidden {
+    display: none;
+}
+.update-panel-visible {
+    display: block;
+}
+
+/* ---------- Search page: donor card grid ---------- */
+.donor-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+.donor-card {
+    background: white; border-radius: 8px; padding: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.donor-card h3 { margin: 0 0 8px; font-size: 1rem; }
+.donor-card p { margin: 4px 0; font-size: 0.88rem; }
+.donor-card button {
+    margin-top: 10px; width: 100%; background: #b71c1c; color: white;
+    border: none; padding: 8px; border-radius: 6px; cursor: pointer;
+}
+.donor-card button:hover { background: #8f1515; }
+
+.donor-id { font-size: 0.75rem; color: #999; margin: 0 0 4px; font-weight: 600; }
+.card-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.card-actions button { width: 100%; }

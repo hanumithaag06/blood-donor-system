@@ -28,13 +28,12 @@
                 <option>O+</option><option>O-</option>
             </select>
 
-            <input type="text" id="area" placeholder="Area (e.g. Tambaram)">
+            <select id="area" class="area-select">
+                <option value="">Any Area</option>
+            </select>
 
             <label class="checkbox-label">
                 <input type="checkbox" id="eligible_only"> Eligible only
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="available_only"> Available only
             </label>
 
             <button type="submit">Search</button>
@@ -42,20 +41,11 @@
 
         <div id="results-status" class="status-text"></div>
 
-        <table id="results-table" class="donor-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Blood Group</th>
-                    <th>Area</th>
-                    <th>Eligible</th>
-                    <th>Available</th>
-                    <th>Prediction</th>
-                    <th>Reason</th>
-                </tr>
-            </thead>
-            <tbody id="results-body"></tbody>
-        </table>
+        <h2>Available Donors</h2>
+        <div id="available-donors" class="donor-card-grid"></div>
+
+        <h2>Unavailable Donors</h2>
+        <div id="unavailable-donors" class="donor-card-grid"></div>
     </main>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>

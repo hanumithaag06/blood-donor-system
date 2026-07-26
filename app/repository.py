@@ -27,8 +27,8 @@ class DonorRepository:
     def get_by_id(self, donor_id: int) -> Optional[Donor]:
         return self.session.get(Donor, donor_id)
 
-    def get_by_phone(self, phone: str) -> Optional[Donor]:
-        return self.session.query(Donor).filter(Donor.phone == phone).first()
+    def get_by_phone(self, phone_number: str) -> Optional[Donor]:
+        return self.session.query(Donor).filter(Donor.phone_number == phone_number).first()
 
     def update(self, donor: Donor) -> Donor:
         self.session.flush()
@@ -42,19 +42,20 @@ class DonorRepository:
         blood_group: Optional[str] = None,
         area: Optional[str] = None,
         is_available: Optional[bool] = None,
+        name: Optional[str] = None,
     ) -> list[Donor]:
-        """
-        Filtered search, building the query incrementally so we never run
-        more WHERE clauses than necessary (Phase 9 performance requirement).
-        """
         query = self.session.query(Donor)
 
         if blood_group:
-            query = query.filter(Donor.blood_group == blood_group)
+            query = query.filter(Donor.blood_group == blood_group.strip().upper())
         if area:
-            query = query.filter(Donor.area == area)
+            # Case-insensitive, whitespace-trimmed comparison — both sides
+            # normalized identically so "Anna Nagar" == "anna nagar " == " ANNA NAGAR"
+            query = query.filter(func.lower(func.trim(Donor.area)) == area.strip().lower())
         if is_available is not None:
             query = query.filter(Donor.is_available == is_available)
+        if name:
+            query = query.filter(Donor.full_name.ilike(f"%{name.strip()}%"))
 
         return query.all()
 
@@ -75,6 +76,22 @@ class DonorRepository:
         return (
             self.session.query(func.count(Donor.id))
             .filter(Donor.blood_group == blood_group)
+            .scalar()
+        )
+
+    def count_donations(self, donor_id: int) -> int:
+        """Computed count — never stored, per Phase 5 normalization decision."""
+        return (
+            self.session.query(func.count(Donation.id))
+            .filter(Donation.donor_id == donor_id)
+            .scalar()
+        )
+
+    def count_donations_today(self) -> int:
+        from datetime import date as date_cls
+        return (
+            self.session.query(func.count(Donation.id))
+            .filter(Donation.donation_date == date_cls.today())
             .scalar()
         )
 
@@ -121,4 +138,12 @@ class DonationRepository:
             .filter(Donation.donation_date >= cutoff)
             .order_by(Donation.donation_date.desc())
             .all()
+        )
+
+    def count_donations_today(self) -> int:
+        from datetime import date as date_cls
+        return (
+            self.session.query(func.count(Donation.id))
+            .filter(Donation.donation_date == date_cls.today())
+            .scalar()
         )

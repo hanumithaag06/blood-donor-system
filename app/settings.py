@@ -27,5 +27,14 @@ class Settings:
         "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"
     )
 
+    CHENNAI_AREAS: tuple = (
+        "Anna Nagar", "Adyar", "Ambattur", "Ashok Nagar", "Alandur", "Avadi",
+        "Besant Nagar", "Chromepet", "Egmore", "Guindy", "Kodambakkam",
+        "Kolathur", "Madhavaram", "Madipakkam", "Mogappair", "Mylapore",
+        "Nanganallur", "OMR", "Pallavaram", "Perambur", "Porur",
+        "Royapettah", "Saidapet", "Tambaram", "T Nagar", "Thiruvanmiyur",
+        "Triplicane", "Vadapalani", "Velachery", "Villivakkam", "Virugambakkam",
+    )
+
 
 settings = Settings()

@@ -23,7 +23,7 @@ class Donor(Base):
     date_of_birth = Column(Date, nullable=False)
     blood_group = Column(String, nullable=False)
     gender = Column(String, nullable=True)  # 'Male' / 'Female' / 'Other' — optional, additive field
-    phone = Column(String, nullable=False, unique=True)
+    phone_number = Column(String, nullable=False, unique=True, index=True)
     area = Column(String, nullable=False)
     is_available = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

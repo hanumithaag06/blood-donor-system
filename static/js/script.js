@@ -9,6 +9,7 @@ function initSearchPage() {
     const form = document.getElementById("search-form");
     if (!form) return;
 
+    populateAreaDropdowns();
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         await runSearch();
@@ -19,13 +20,11 @@ async function runSearch() {
     const bloodGroup = document.getElementById("blood_group").value;
     const area = document.getElementById("area").value.trim();
     const eligibleOnly = document.getElementById("eligible_only").checked;
-    const availableOnly = document.getElementById("available_only").checked;
 
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({ all: "true" }); // fetch all, split client-side
     if (bloodGroup) params.append("blood_group", bloodGroup);
     if (area) params.append("area", area);
     if (eligibleOnly) params.append("eligible_only", "true");
-    if (availableOnly) params.append("available_only", "true");
 
     const statusEl = document.getElementById("results-status");
     statusEl.textContent = "Searching...";
@@ -34,22 +33,24 @@ async function runSearch() {
         const response = await fetch(`${API_BASE}/search?${params.toString()}`);
         if (!response.ok) throw new Error(`Request failed (${response.status})`);
         const results = await response.json();
-        renderResults(results);
+        renderDonorCards(results);
         statusEl.textContent = `${results.length} donor(s) found.`;
     } catch (err) {
         statusEl.textContent = "Error fetching results: " + err.message;
     }
 }
 
-function renderResults(results) {
-    const body = document.getElementById("results-body");
-    body.innerHTML = "";
+function renderDonorCards(results) {
+    const availableContainer = document.getElementById("available-donors");
+    const unavailableContainer = document.getElementById("unavailable-donors");
+    availableContainer.innerHTML = "";
+    unavailableContainer.innerHTML = "";
 
     if (results.length === 0) {
-        document.getElementById("results-status").innerHTML = `
+        availableContainer.innerHTML = `
             <div class="empty-state">
                 <p>No donors found matching your filters.</p>
-                <p class="hint">Try removing the area filter, choosing "Any Blood Group", or unchecking "Eligible only".</p>
+                <p class="hint">Try removing the area filter or choosing "Any Blood Group".</p>
             </div>`;
         return;
     }
@@ -57,19 +58,55 @@ function renderResults(results) {
     results.forEach((r) => {
         const donor = r.donor;
         const eligibility = r.eligibility;
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td><a href="/donor/${donor.id}">${donor.full_name}</a></td>
-            <td>${donor.blood_group}</td>
-            <td>${donor.area}</td>
-            <td class="${eligibility.is_eligible ? 'badge-yes' : 'badge-no'}">${eligibility.is_eligible ? "Yes" : "No"}</td>
-            <td class="${donor.is_available ? 'badge-yes' : 'badge-no'}">${donor.is_available ? "Yes" : "No"}</td>
-            <td>${(r.prediction_score * 100).toFixed(0)}%</td>
-            <td>${eligibility.reason}</td>
+        const lastDonation = eligibility.last_donation_date || "No prior donation";
+        const card = document.createElement("div");
+        card.className = "donor-card";
+        card.innerHTML = `
+            <p class="donor-id">${donor.donor_code}</p>
+            <h3>${donor.full_name}</h3>
+            <p><b>Blood Group:</b> ${donor.blood_group}</p>
+            <p><b>Phone:</b> ${donor.phone_number}</p>
+            <p><b>Area:</b> ${donor.area}</p>
+            <p><b>Eligible:</b> <span class="${eligibility.is_eligible ? 'badge-yes' : 'badge-no'}">${eligibility.is_eligible ? "Yes" : "No"}</span></p>
+            <p><b>Available:</b> <span class="${donor.is_available ? 'badge-yes' : 'badge-no'}">${donor.is_available ? "Yes" : "No"}</span></p>
+            <p><b>Last Donation:</b> ${lastDonation}</p>
+            <div class="card-actions">
+                <a href="/donor/${donor.id}"><button type="button">View Details</button></a>
+                ${donor.is_available ? `<button type="button" onclick="markDonationCompleted(${donor.id}, this)">Mark Donation Completed</button>` : ""}
+            </div>
         `;
-        body.appendChild(row);
+        (donor.is_available ? availableContainer : unavailableContainer).appendChild(card);
     });
 }
+
+async function markDonationCompleted(donorId, buttonEl) {
+    const confirmed = confirm("Has this donor successfully donated blood to the patient?");
+    if (!confirmed) return;
+
+    const today = new Date().toISOString().split("T")[0];
+    try {
+        const response = await fetch(`${API_BASE}/donors/${donorId}/complete-donation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ donation_date: today }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to record donation");
+
+        const card = buttonEl.closest(".donor-card");
+        buttonEl.remove();
+        const availabilityBadge = card.querySelector(".badge-yes");
+        if (availabilityBadge) {
+            availabilityBadge.className = "badge-no";
+            availabilityBadge.textContent = "No";
+        }
+        document.getElementById("unavailable-donors").appendChild(card);
+        alert("Donation recorded. Donor moved to unavailable until eligible again.");
+    } catch (err) {
+        alert("Error: " + err.message);
+    }
+}
+
 
 async function viewPrediction(donorId) {
     try {
@@ -85,23 +122,122 @@ async function viewPrediction(donorId) {
     }
 }
 
-// ---------- Register Page ----------
+function switchMode(mode) {
+    const addSection = document.getElementById("mode-add");
+    const updateSection = document.getElementById("mode-update");
+    const addTab = document.getElementById("tab-add");
+    const updateTab = document.getElementById("tab-update");
+
+    addSection.classList.toggle("active", mode === "add");
+    updateSection.classList.toggle("active", mode === "update");
+
+    addTab.classList.toggle("active", mode === "add");
+    updateTab.classList.toggle("active", mode === "update");
+    addTab.setAttribute("aria-selected", mode === "add");
+    updateTab.setAttribute("aria-selected", mode === "update");
+}
 
 function initRegisterPage() {
     const donorForm = document.getElementById("donor-form");
-    const donationForm = document.getElementById("donation-form");
+    const lookupForm = document.getElementById("lookup-form");
+    const updateForm = document.getElementById("update-form");
+    const donationForm = document.getElementById("record-donation-form");
     if (!donorForm) return;
 
-    donorForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await submitDonor();
-    });
-
-    donationForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await submitDonation();
-    });
+    populateAreaDropdowns();
+    donorForm.addEventListener("submit", (e) => { e.preventDefault(); submitDonor(); });
+    lookupForm.addEventListener("submit", (e) => { e.preventDefault(); lookupDonor(); });
+    updateForm.addEventListener("submit", (e) => { e.preventDefault(); saveDonorUpdate(); });
+    donationForm.addEventListener("submit", (e) => { e.preventDefault(); recordDonation(); });
 }
+
+// ---------- Mode 2: Lookup ----------
+
+async function lookupDonor() {
+    const donorId = document.getElementById("lookup_donor_id").value;
+    const phone = document.getElementById("lookup_phone_number").value;
+    const statusEl = document.getElementById("lookup-status");
+    const panel = document.getElementById("update-panel");
+
+    const params = new URLSearchParams();
+    if (donorId) params.append("donor_id", donorId);
+    if (phone) params.append("phone_number", phone);
+
+    try {
+        const response = await fetch(`${API_BASE}/donors/lookup?${params.toString()}`);
+        const donor = await response.json();
+        if (!response.ok) throw new Error(donor.error || "Donor not found");
+
+        panel.classList.remove("update-panel-hidden");
+        panel.classList.add("update-panel-visible");
+
+        document.getElementById("update_donor_id").value = donor.id;
+        document.getElementById("update_area").value = donor.area;
+        document.getElementById("update_phone_number").value = donor.phone_number;
+        document.getElementById("update_is_available").checked = donor.is_available;
+        document.getElementById("update-readonly-info").innerHTML = `
+            <b>${donor.full_name}</b> (${donor.donor_code}) — ${donor.blood_group} — DOB: ${donor.date_of_birth}
+        `;
+        statusEl.textContent = "";
+    } catch (err) {
+        panel.classList.remove("update-panel-visible");
+        panel.classList.add("update-panel-hidden");
+        statusEl.textContent = "Error: " + err.message;
+        statusEl.style.color = "#b71c1c";
+    }
+}
+
+async function saveDonorUpdate() {
+    const donorId = document.getElementById("update_donor_id").value;
+    const payload = {
+        area: document.getElementById("update_area").value,
+        phone_number: document.getElementById("update_phone_number").value,
+        is_available: document.getElementById("update_is_available").checked,
+    };
+    const statusEl = document.getElementById("update-status");
+    try {
+        const response = await fetch(`${API_BASE}/donors/${donorId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Update failed");
+        statusEl.textContent = "Profile updated successfully.";
+        statusEl.style.color = "#1b7a1b";
+    } catch (err) {
+        statusEl.textContent = "Error: " + err.message;
+        statusEl.style.color = "#b71c1c";
+    }
+}
+
+async function recordDonation() {
+    const donorId = document.getElementById("update_donor_id").value;
+    const payload = {
+        donation_date: document.getElementById("donation_date").value,
+        volume_ml: document.getElementById("donation_volume_ml").value
+            ? parseInt(document.getElementById("donation_volume_ml").value, 10) : null,
+    };
+    const statusEl = document.getElementById("donation-status");
+    try {
+        // Reuses the same completion workflow as the search page's
+        // "Mark Donation Completed" action — single source of truth.
+        const response = await fetch(`${API_BASE}/donors/${donorId}/complete-donation`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Failed to record donation");
+        statusEl.textContent = `Donation recorded. Total donations: ${data.total_donations}. Donor marked unavailable.`;
+        statusEl.style.color = "#1b7a1b";
+        document.getElementById("update_is_available").checked = false;
+    } catch (err) {
+        statusEl.textContent = "Error: " + err.message;
+        statusEl.style.color = "#b71c1c";
+    }
+}
+
 
 // ---------- Age calc + client-side validation (Register page) ----------
 
@@ -126,7 +262,7 @@ function validateDonorForm(payload) {
     if (!payload.date_of_birth) errors.push("Date of birth is required.");
     else if (new Date(payload.date_of_birth) > new Date()) errors.push("Date of birth cannot be in the future.");
     if (!payload.blood_group) errors.push("Blood group is required.");
-    if (!/^\d{7,15}$/.test(payload.phone)) errors.push("Phone must be 7–15 digits.");
+    if (!/^\d{7,15}$/.test(payload.phone_number)) errors.push("Phone must be 7–15 digits.");
     if (!payload.area.trim()) errors.push("Area is required.");
     return errors;
 }
@@ -139,7 +275,7 @@ async function submitDonor() {
         date_of_birth: document.getElementById("date_of_birth").value,
         gender: document.getElementById("gender").value || null,
         blood_group: document.getElementById("blood_group").value,
-        phone: document.getElementById("phone").value,
+        phone_number: document.getElementById("phone_number").value,
         area: document.getElementById("area").value,
         is_available: document.getElementById("is_available").checked,
     };
@@ -161,18 +297,11 @@ async function submitDonor() {
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "Failed to register donor");
-
-        // If a last donation date was provided, log it via the existing donations endpoint
-        const lastDonation = document.getElementById("last_donation_date").value;
-        if (lastDonation) {
-            await fetch(`${API_BASE}/donations`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ donor_id: data.id, donation_date: lastDonation }),
-            });
-        }
-
-        statusEl.textContent = `Registered donor #${data.id} — ${data.full_name}`;
+        statusEl.innerHTML = `
+            Registration Successful<br>
+            Donor ID: <b id="new-donor-code">${data.donor_code}</b>
+            <button type="button" onclick="copyDonorCode()">Copy</button>
+        `;
         statusEl.style.color = "#1b7a1b";
     } catch (err) {
         statusEl.textContent = "Error: " + err.message;
@@ -180,35 +309,23 @@ async function submitDonor() {
     }
 }
 
-async function submitDonation() {
-    const payload = {
-        donor_id: parseInt(document.getElementById("donor_id").value, 10),
-        donation_date: document.getElementById("donation_date").value,
-        volume_ml: document.getElementById("volume_ml").value
-            ? parseInt(document.getElementById("volume_ml").value, 10)
-            : null,
-    };
-
-    const statusEl = document.getElementById("donation-status");
-    try {
-        const response = await fetch(`${API_BASE}/donations`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || "Failed to log donation");
-        statusEl.textContent = `Donation #${data.id} logged for donor #${data.donor_id}`;
-        statusEl.style.color = "#1b7a1b";
-    } catch (err) {
-        statusEl.textContent = "Error: " + err.message;
-        statusEl.style.color = "#b71c1c";
-    }
+function copyDonorCode() {
+    const code = document.getElementById("new-donor-code").textContent;
+    navigator.clipboard.writeText(code);
 }
+
 
 // ---------- Dashboard ----------
 
+let bloodGroupChartInstance = null;
+let eligibilityChartInstance = null;
+
 async function initDashboardPage() {
+    await refreshDashboard();
+    setInterval(refreshDashboard, 15000); // poll every 15s — no page reload, no restart needed
+}
+
+async function refreshDashboard() {
     try {
         const response = await fetch(`${API_BASE}/dashboard`);
         const stats = await response.json();
@@ -216,13 +333,29 @@ async function initDashboardPage() {
         document.getElementById("total_donors").textContent = stats.total_donors;
         document.getElementById("eligible_today").textContent = stats.eligible_today;
         document.getElementById("available_donors").textContent = stats.available_donors;
-        document.getElementById("rare_blood_donors").textContent = stats.rare_blood_donors;
+        document.getElementById("donations_today").textContent = stats.donations_today ?? 0;
 
         renderAreaHeatmap(stats.area_counts);
         renderBloodGroupChart(stats.blood_group_counts);
         renderEligibilityChart(stats.eligible_today, stats.not_eligible_today);
+        loadDashboardDonorTable();
     } catch (err) {
-        console.error("Dashboard load failed:", err);
+        console.error("Dashboard refresh failed:", err);
+    }
+}
+
+async function loadDashboardDonorTable() {
+    try {
+        const response = await fetch(`${API_BASE}/donors`);
+        const donors = await response.json();
+        const body = document.getElementById("dashboard-donor-table-body");
+        if (body) {
+            body.innerHTML = donors.slice(0, 10).map(d => `
+                <tr><td>${d.donor_code}</td><td>${d.full_name}</td><td>${d.blood_group}</td><td>${d.area}</td></tr>
+            `).join("");
+        }
+    } catch (err) {
+        console.error("Failed to load dashboard donor table:", err);
     }
 }
 
@@ -247,9 +380,10 @@ function renderAreaHeatmap(areaCounts) {
 }
 
 function renderBloodGroupChart(bloodGroupCounts) {
+    if (bloodGroupChartInstance) bloodGroupChartInstance.destroy(); // prevent duplicate canvases stacking
     const ctx = document.getElementById("bloodGroupChart");
     if (!ctx || !bloodGroupCounts) return;
-    new Chart(ctx, {
+    bloodGroupChartInstance = new Chart(ctx, {
         type: "bar",
         data: {
             labels: Object.keys(bloodGroupCounts),
@@ -261,6 +395,7 @@ function renderBloodGroupChart(bloodGroupCounts) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
         },
@@ -268,9 +403,10 @@ function renderBloodGroupChart(bloodGroupCounts) {
 }
 
 function renderEligibilityChart(eligible, notEligible) {
+    if (eligibilityChartInstance) eligibilityChartInstance.destroy();
     const ctx = document.getElementById("eligibilityChart");
     if (!ctx) return;
-    new Chart(ctx, {
+    eligibilityChartInstance = new Chart(ctx, {
         type: "doughnut",
         data: {
             labels: ["Eligible", "Not Eligible"],
@@ -279,7 +415,7 @@ function renderEligibilityChart(eligible, notEligible) {
                 backgroundColor: ["#1b7a1b", "#b71c1c"],
             }],
         },
-        options: { responsive: true },
+        options: { responsive: true, maintainAspectRatio: false },
     });
 }
 
@@ -296,7 +432,7 @@ async function initDonorDetailsPage(donorId) {
             <p><b>Blood Group:</b> ${data.donor.blood_group}</p>
             <p><b>Gender:</b> ${data.donor.gender || "Prefer not to say"}</p>
             <p><b>Area:</b> ${data.donor.area}</p>
-            <p><b>Phone:</b> ${data.donor.phone}</p>
+            <p><b>Phone:</b> ${data.donor.phone_number}</p>
             <p><b>Available:</b> ${data.donor.is_available ? "Yes" : "No"}</p>
             <p><b>Total Donations:</b> ${data.total_donations}</p>
             <p><b>Last Donation:</b> ${data.last_donation_date || "No prior donations"}</p>
@@ -388,7 +524,7 @@ async function postAndShow(url, payload) {
 function demoDuplicatePhone() {
     const payload = {
         full_name: "Duplicate Test", date_of_birth: "1995-01-01",
-        blood_group: "O+", phone: "9123456789", area: "Test Area",
+        blood_group: "O+", phone_number: "9123456789", area: "Test Area",
     };
     // Sends the same request twice — second one triggers the UNIQUE constraint
     postAndShow(`${API_BASE}/donors`, payload).then(() => postAndShow(`${API_BASE}/donors`, payload));
@@ -401,7 +537,7 @@ function demoFutureDate() {
 function demoInvalidAge() {
     postAndShow(`${API_BASE}/donors`, {
         full_name: "Too Young", date_of_birth: "2020-01-01",
-        blood_group: "O+", phone: "9123456700", area: "Test Area",
+        blood_group: "O+", phone_number: "9123456700", area: "Test Area",
     });
 }
 
@@ -446,7 +582,30 @@ function appendChatMessage(sender, text) {
     const chatWindow = document.getElementById("chat-window");
     const msg = document.createElement("div");
     msg.className = `chat-message ${sender}`;
-    msg.innerHTML = `<span class="label">${sender === "user" ? "You" : "Assistant"}</span>${text}`;
+    const formattedText = text.replace(/\n/g, "<br>");  // NEW — preserve line breaks from assistant cards
+    msg.innerHTML = `<span class="label">${sender === "user" ? "You" : "Assistant"}</span>${formattedText}`;
     chatWindow.appendChild(msg);
     chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+async function populateAreaDropdowns() {
+    try {
+        const response = await fetch(`${API_BASE}/areas`);
+        const areas = await response.json();
+        document.querySelectorAll("select.area-select").forEach((select) => {
+            const firstOpt = select.querySelector("option");
+            select.innerHTML = "";
+            if (firstOpt) {
+                select.appendChild(firstOpt);
+            }
+            areas.forEach((area) => {
+                const opt = document.createElement("option");
+                opt.value = area;
+                opt.textContent = area;
+                select.appendChild(opt);
+            });
+        });
+    } catch (err) {
+        console.error("Failed to load area list:", err);
+    }
 }

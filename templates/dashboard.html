@@ -5,6 +5,10 @@
     <title>Dashboard — Blood Donor Registry</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        .chart-card canvas { max-height: 260px; }
+        .chart-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -21,9 +25,9 @@
 
         <div class="stats-grid" id="stats-grid">
             <div class="stat-card"><span class="stat-value" id="total_donors">–</span><span class="stat-label">Total Donors</span></div>
-            <div class="stat-card"><span class="stat-value" id="eligible_today">–</span><span class="stat-label">Eligible Today</span></div>
             <div class="stat-card"><span class="stat-value" id="available_donors">–</span><span class="stat-label">Available Donors</span></div>
-            <div class="stat-card"><span class="stat-value" id="rare_blood_donors">–</span><span class="stat-label">Rare Blood Donors</span></div>
+            <div class="stat-card"><span class="stat-value" id="eligible_today">–</span><span class="stat-label">Eligible Donors</span></div>
+            <div class="stat-card"><span class="stat-value" id="donations_today">–</span><span class="stat-label">Donations Today</span></div>
         </div>
 
         <div class="chart-grid">
@@ -40,6 +44,12 @@
                 <canvas id="eligibilityChart"></canvas>
             </div>
         </div>
+
+        <h2>Recent Donors</h2>
+        <table class="donor-table">
+            <thead><tr><th>Donor ID</th><th>Name</th><th>Blood Group</th><th>Area</th></tr></thead>
+            <tbody id="dashboard-donor-table-body"></tbody>
+        </table>
     </main>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script>document.addEventListener("DOMContentLoaded", initDashboardPage);</script>

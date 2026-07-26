@@ -60,11 +60,11 @@ def seed_dev_data() -> None:
 
         donors = [
             Donor(full_name="Arun Kumar", date_of_birth=date(1995, 4, 12),
-                  blood_group="O+", phone="9000000001", area="Tambaram", is_available=True),
+                  blood_group="O+", phone_number="9000000001", area="Tambaram", is_available=True),
             Donor(full_name="Divya Shree", date_of_birth=date(1998, 9, 3),
-                  blood_group="A-", phone="9000000002", area="Velachery", is_available=True),
+                  blood_group="A-", phone_number="9000000002", area="Velachery", is_available=True),
             Donor(full_name="Karthik Raja", date_of_birth=date(1990, 1, 20),
-                  blood_group="B+", phone="9000000003", area="Tambaram", is_available=False),
+                  blood_group="B+", phone_number="9000000003", area="Tambaram", is_available=False),
         ]
         session.add_all(donors)
         session.flush()  # populate donor.id before creating donations

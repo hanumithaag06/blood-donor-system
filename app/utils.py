@@ -47,3 +47,9 @@ class ValidationError(AppError):
 class DuplicateError(AppError):
     """Raised when attempting to create a record that violates uniqueness."""
     status_code = 409
+
+
+def normalize_area(area: str) -> str:
+    """Trims whitespace and title-cases area names for consistent storage
+    and comparison (e.g. 'anna nagar ' -> 'Anna Nagar')."""
+    return area.strip().title()
