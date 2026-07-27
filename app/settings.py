@@ -36,5 +36,26 @@ class Settings:
         "Triplicane", "Vadapalani", "Velachery", "Villivakkam", "Virugambakkam",
     )
 
+    TANGLISH_WORD_MAP: dict = {
+        "la": "in",
+        "kaatu": "show",
+        "kattu": "show",
+        "kamika": "show",
+        "irukka": "available",
+        "iruka": "available",
+        "irukanga": "available",
+        "thaguhi": "eligible",
+        "thaguthi": "eligible",
+        "evalavu": "count",
+        "ethanai": "count",
+        "ennikai": "count",
+        "irukuranga": "available",
+        "irukura": "available",
+        "evlo": "how many",
+        "evolo": "how many",
+        "evallo": "how many",
+        "yevlo": "how many",
+    }
+
 
 settings = Settings()
